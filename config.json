@@ -1,0 +1,14 @@
+{
+    "api": {
+        "key": "NSO7DST4DWJEW161",
+        "baseUrl": "https://www.alphavantage.co/",
+        "endpoints": {
+            "query": "query"
+        },
+        "params": {
+            "function": {
+                "SYMBOL_SEARCH": "SYMBOL_SEARCH"
+            }
+        }
+    }
+}
