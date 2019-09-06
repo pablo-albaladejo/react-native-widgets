@@ -7,7 +7,8 @@
         },
         "params": {
             "function": {
-                "SYMBOL_SEARCH": "SYMBOL_SEARCH"
+                "SYMBOL_SEARCH": "SYMBOL_SEARCH",
+                "GLOBAL_QUOTE": "GLOBAL_QUOTE"
             }
         }
     }
