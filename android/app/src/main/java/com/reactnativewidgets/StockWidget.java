@@ -1,48 +1,93 @@
 package com.reactnativewidgets;
 
+import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.util.Log;
 import android.widget.RemoteViews;
+
+import java.util.stream.Stream;
 
 /**
  * Implementation of App Widget functionality.
  */
 public class StockWidget extends AppWidgetProvider {
 
+    //https://developer.android.com/reference/android/appwidget/AppWidgetManager
+    public static final String ACTION_APPWIDGET_CONFIGURE = "ACTION_WIDGET_CONFIGURE"; //ACTION_APPWIDGET_CONFIGURE
+    public static final String ACTION_APPWIDGET_UPDATE = "android.appwidget.action.APPWIDGET_UPDATE";
+
+
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
+        Log.d("WIDGET_PROVIDER", "updateAppWidget " + appWidgetId);
 
-        CharSequence symbolText = "APPL";
-        CharSequence openText = "214.05";
-        CharSequence priceText = "213.26";
+        RemoteViews views = null;
 
-        // Construct the RemoteViews object
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.stock_widget);
-        views.setTextViewText(R.id.appwidget_symbol, symbolText);
-        views.setTextViewText(R.id.appwidget_open, openText);
-        views.setTextViewText(R.id.appwidget_price, priceText);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        String symbol = prefs.getString("widget_"+appWidgetId+"_symbol", null);
 
-        // Instruct the widget manager to update the widget
-        appWidgetManager.updateAppWidget(appWidgetId, views);
-    }
+        if(symbol == null){
+            views = new RemoteViews(context.getPackageName(), R.layout.configure_widget);
 
-    @Override
-    public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-        // There may be multiple widgets active, so update all of them
-        for (int appWidgetId : appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId);
+            Intent intent = new Intent(context, StockWidget.class);
+            intent.setAction(ACTION_APPWIDGET_CONFIGURE);
+            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(context, appWidgetId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            views.setOnClickPendingIntent(R.id.appwidget_configure, pendingIntent );
+
+        }else{
+            views = new RemoteViews(context.getPackageName(), R.layout.stock_widget);
+
+            CharSequence symbolText = "APPL";
+            CharSequence openText = "214.05";
+            CharSequence priceText = "213.26";
+
+            views.setTextViewText(R.id.appwidget_symbol, symbolText);
+            views.setTextViewText(R.id.appwidget_open, openText);
+            views.setTextViewText(R.id.appwidget_price, priceText);
         }
+
+        appWidgetManager.updateAppWidget(appWidgetId, views);
+
     }
 
     @Override
-    public void onEnabled(Context context) {
-        // Enter relevant functionality for when the first widget is created
-    }
+    public void onReceive(final Context context, final Intent incomingIntent) {
+        super.onReceive(context, incomingIntent);
+        Log.d("WIDGET_PROVIDER", "onReceive");
 
-    @Override
-    public void onDisabled(Context context) {
-        // Enter relevant functionality for when the last widget is disabled
+        Bundle extras = incomingIntent.getExtras();
+
+        switch (incomingIntent.getAction()){
+            case ACTION_APPWIDGET_UPDATE:
+
+                //TODO: update stock data
+                int[] appWidgetIds = extras.getIntArray(AppWidgetManager.EXTRA_APPWIDGET_IDS);
+                for (int appWidgetId : appWidgetIds) {
+                    Log.d("WIDGET_PROVIDER", "ACTION_APPWIDGET_UPDATE: " + appWidgetId);
+                    updateAppWidget(context, AppWidgetManager.getInstance(context), appWidgetId);
+                }
+
+                break;
+
+            case ACTION_APPWIDGET_CONFIGURE:
+
+                //TODO: configure stock data
+                Log.d("WIDGET_PROVIDER", "ACTION_APPWIDGET_CONFIGURE: " + extras.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID));
+
+                break;
+
+            default:
+                Log.d("WIDGET_PROVIDER", "onReceive default " + incomingIntent.getAction());
+                break;
+        }
     }
 }
 
