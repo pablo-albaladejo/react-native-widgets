@@ -1,21 +1,50 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#09C"
-    android:padding="@dimen/widget_margin">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@drawable/widget_bg"
+    android:gravity="center"
+    android:layout_margin="@dimen/widget_margin"
+    android:orientation="horizontal">
 
     <TextView
-        android:id="@+id/appwidget_text"
+        android:id="@+id/appwidget_symbol"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:layout_margin="8dp"
-        android:background="#09C"
-        android:contentDescription="@string/appwidget_text"
-        android:text="@string/appwidget_text"
         android:textColor="#ffffff"
         android:textSize="24sp"
-        android:textStyle="bold|italic" />
+        android:textStyle="bold|italic"
+        android:gravity="center"
+        tools:text="SMBL"
+        />
 
-</RelativeLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        >
+
+    <TextView
+        android:id="@+id/appwidget_open"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#ffffff"
+        android:textSize="14sp"
+        android:textStyle="bold|italic"
+        tools:text="OPEN"
+        />
+
+    <TextView
+        android:id="@+id/appwidget_price"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#ffffff"
+        android:textSize="14sp"
+        android:textStyle="bold|italic"
+        tools:text="PRICE"
+        />
+    </LinearLayout>
+
+</LinearLayout>
