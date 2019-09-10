@@ -21,6 +21,8 @@ public class StockWidget extends AppWidgetProvider {
     //https://developer.android.com/reference/android/appwidget/AppWidgetManager
     public static final String ACTION_APPWIDGET_CONFIGURE = "ACTION_WIDGET_CONFIGURE"; //ACTION_APPWIDGET_CONFIGURE
     public static final String ACTION_APPWIDGET_UPDATE = "android.appwidget.action.APPWIDGET_UPDATE";
+    public static final String ACTION_APPWIDGET_ENABLED = "android.appwidget.action.ACTION_APPWIDGET_ENABLED";
+
 
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
@@ -58,6 +60,8 @@ public class StockWidget extends AppWidgetProvider {
 
     }
 
+
+
     @Override
     public void onReceive(final Context context, final Intent incomingIntent) {
         super.onReceive(context, incomingIntent);
@@ -67,6 +71,8 @@ public class StockWidget extends AppWidgetProvider {
 
         switch (incomingIntent.getAction()){
             case ACTION_APPWIDGET_UPDATE:
+            case ACTION_APPWIDGET_ENABLED:
+
 
                 //TODO: update stock data
                 int[] appWidgetIds = extras.getIntArray(AppWidgetManager.EXTRA_APPWIDGET_IDS);
@@ -78,9 +84,8 @@ public class StockWidget extends AppWidgetProvider {
                 break;
 
             case ACTION_APPWIDGET_CONFIGURE:
-
-                //TODO: configure stock data
                 Log.d("WIDGET_PROVIDER", "ACTION_APPWIDGET_CONFIGURE: " + extras.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID));
+                configureWidget(context, extras.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID));
 
                 break;
 
@@ -89,5 +94,22 @@ public class StockWidget extends AppWidgetProvider {
                 break;
         }
     }
+
+    private void configureWidget(Context context, int appWidgetId){
+        Bundle payload = new Bundle();
+        payload.putInt("appWidgetId", appWidgetId);
+
+        Bundle widget = new Bundle();
+        widget.putBundle("payload", payload);
+
+        Intent intent = new Intent(context, CustomReactActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+        intent.putExtra("module", "WidgetStockSearch");
+        intent.putExtra("bundle", widget);
+
+        context.startActivity(intent);
+    }
+
 }
 
