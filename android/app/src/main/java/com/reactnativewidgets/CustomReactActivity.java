@@ -10,6 +10,7 @@ import com.facebook.react.common.LifecycleState;
 import com.facebook.react.modules.core.DefaultHardwareBackBtnHandler;
 import com.facebook.react.shell.MainReactPackage;
 
+import com.reactnativewidgets.bridge.RNStockPackage;
 import com.swmansion.gesturehandler.react.RNGestureHandlerPackage;
 
 
@@ -32,6 +33,7 @@ public class CustomReactActivity extends ReactActivity implements DefaultHardwar
                 .setJSMainModulePath("index")
                 .addPackage(new MainReactPackage())
                 .addPackage(new RNGestureHandlerPackage())
+                .addPackage(new RNStockPackage())
                 .setUseDeveloperSupport(BuildConfig.DEBUG)
                 .setInitialLifecycleState(LifecycleState.RESUMED)
                 .build();

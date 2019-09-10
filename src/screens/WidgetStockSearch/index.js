@@ -1,11 +1,13 @@
 import React, { Component } from 'react';
 import StockSearch from '../../components/StockSearch';
+import { BackHandler, NativeModules } from 'react-native'
 
+const { RNStockModule } = NativeModules
 class WidgetStockSearch extends Component {
 
     processItemSelected = (item) => {
-        //this.props.navigation.navigate('Detail', { stock: item });
-        alert(JSON.stringify(item))
+        RNStockModule.selectStock(item);
+        BackHandler.exitApp();
     }
 
     render() {
