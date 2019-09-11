@@ -5,9 +5,13 @@ import { BackHandler, NativeModules } from 'react-native'
 const { RNStockModule } = NativeModules
 class WidgetStockSearch extends Component {
 
-    processItemSelected = (item) => {
-        RNStockModule.selectStock(item);
-        BackHandler.exitApp();
+    processItemSelected = (stock) => {
+        RNStockModule.selectStock({
+            symbol: stock.symbol,
+            appWidgetId: this.props.payload.appWidgetId
+        }, () => {
+            BackHandler.exitApp();
+        });
     }
 
     render() {

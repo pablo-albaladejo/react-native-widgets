@@ -11,7 +11,8 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.RemoteViews;
 
-import java.util.stream.Stream;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Implementation of App Widget functionality.
@@ -19,14 +20,13 @@ import java.util.stream.Stream;
 public class StockWidget extends AppWidgetProvider {
 
     //https://developer.android.com/reference/android/appwidget/AppWidgetManager
-    public static final String ACTION_APPWIDGET_CONFIGURE = "ACTION_WIDGET_CONFIGURE"; //ACTION_APPWIDGET_CONFIGURE
+    public static final String ACTION_APPWIDGET_CONFIGURE = "ACTION_WIDGET_CONFIGURE";
+    public static final String ACTION_APPWIDGET_SET_STOCK = "ACTION_APPWIDGET_SET_STOCK";
     public static final String ACTION_APPWIDGET_UPDATE = "android.appwidget.action.APPWIDGET_UPDATE";
     public static final String ACTION_APPWIDGET_ENABLED = "android.appwidget.action.ACTION_APPWIDGET_ENABLED";
 
-
-
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
-                                int appWidgetId) {
+                                int appWidgetId, JSONObject stock) {
         Log.d("WIDGET_PROVIDER", "updateAppWidget " + appWidgetId);
 
         RemoteViews views = null;
@@ -44,23 +44,30 @@ public class StockWidget extends AppWidgetProvider {
 
             views.setOnClickPendingIntent(R.id.appwidget_configure, pendingIntent );
 
+        }else if(stock != null){
+
+            try{
+                views = new RemoteViews(context.getPackageName(), R.layout.stock_widget);
+
+                CharSequence symbolText = stock.getString("symbol");
+                CharSequence openText = "214.05";
+                CharSequence priceText = "213.26";
+
+                views.setTextViewText(R.id.appwidget_symbol, symbolText);
+                views.setTextViewText(R.id.appwidget_open, openText);
+                views.setTextViewText(R.id.appwidget_price, priceText);
+
+            }catch (JSONException e){
+                Log.d("WIDGET_PROVIDER", "JSONException " + e);
+            }
+
         }else{
-            views = new RemoteViews(context.getPackageName(), R.layout.stock_widget);
-
-            CharSequence symbolText = "APPL";
-            CharSequence openText = "214.05";
-            CharSequence priceText = "213.26";
-
-            views.setTextViewText(R.id.appwidget_symbol, symbolText);
-            views.setTextViewText(R.id.appwidget_open, openText);
-            views.setTextViewText(R.id.appwidget_price, priceText);
+            views = new RemoteViews(context.getPackageName(), R.layout.stock_widget_no_data);
+            views.setTextViewText(R.id.appwidget_symbol, symbol);
         }
 
         appWidgetManager.updateAppWidget(appWidgetId, views);
-
     }
-
-
 
     @Override
     public void onReceive(final Context context, final Intent incomingIntent) {
@@ -73,12 +80,10 @@ public class StockWidget extends AppWidgetProvider {
             case ACTION_APPWIDGET_UPDATE:
             case ACTION_APPWIDGET_ENABLED:
 
-
-                //TODO: update stock data
                 int[] appWidgetIds = extras.getIntArray(AppWidgetManager.EXTRA_APPWIDGET_IDS);
                 for (int appWidgetId : appWidgetIds) {
                     Log.d("WIDGET_PROVIDER", "ACTION_APPWIDGET_UPDATE: " + appWidgetId);
-                    updateAppWidget(context, AppWidgetManager.getInstance(context), appWidgetId);
+                    updateAppWidget(context, AppWidgetManager.getInstance(context), appWidgetId, null);
                 }
 
                 break;
@@ -86,6 +91,12 @@ public class StockWidget extends AppWidgetProvider {
             case ACTION_APPWIDGET_CONFIGURE:
                 Log.d("WIDGET_PROVIDER", "ACTION_APPWIDGET_CONFIGURE: " + extras.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID));
                 configureWidget(context, extras.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID));
+
+                break;
+            case ACTION_APPWIDGET_SET_STOCK:
+                Log.d("WIDGET_PROVIDER", "ACTION_APPWIDGET_SET_STOCK: ");
+
+                setStock(context, extras.getString("symbol"), extras.getInt("appWidgetId"));
 
                 break;
 
@@ -111,5 +122,15 @@ public class StockWidget extends AppWidgetProvider {
         context.startActivity(intent);
     }
 
+
+    private void setStock(Context context, String symbol, int appWidgetId){
+        Log.d("WIDGET_PROVIDER", "setStock: symbol " + symbol + " appWidgetId " + appWidgetId);
+
+        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+        editor.putString("widget_"+appWidgetId+"_symbol", symbol);
+        editor.apply();
+
+        updateAppWidget(context, AppWidgetManager.getInstance(context), appWidgetId, null);
+    }
 }
 

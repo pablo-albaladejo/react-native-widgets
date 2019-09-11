@@ -5,46 +5,35 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:background="@drawable/widget_bg"
     android:gravity="center"
+    android:layout_margin="@dimen/widget_margin"
     android:orientation="horizontal">
 
     <TextView
         android:id="@+id/appwidget_symbol"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:layout_marginLeft="8dp"
         android:textColor="#ffffff"
         android:textSize="24sp"
         android:textStyle="bold|italic"
+        android:gravity="center"
         tools:text="SMBL"
-        android:layout_marginStart="8dp" />
+        />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
-        android:orientation="vertical"
-        >
+        android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/appwidget_open"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="#ffffff"
-        android:textSize="14sp"
-        android:textStyle="bold|italic"
-        tools:text="OPEN"
-        />
-
-    <TextView
-        android:id="@+id/appwidget_price"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="#ffffff"
-        android:textSize="14sp"
-        android:textStyle="bold|italic"
-        tools:text="PRICE"
-        />
+        <TextView
+            android:id="@+id/appwidget_no_data"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/no_data"
+            android:textColor="#ffffff"
+            android:textSize="14sp"
+            android:textStyle="bold|italic"
+            tools:text="No data yet" />
     </LinearLayout>
 
 </LinearLayout>
