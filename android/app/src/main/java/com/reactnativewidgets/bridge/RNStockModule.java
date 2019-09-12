@@ -1,7 +1,6 @@
 package com.reactnativewidgets.bridge;
 
 import android.content.Intent;
-import android.os.Bundle;
 import android.util.Log;
 
 import com.facebook.react.bridge.Callback;
@@ -30,19 +29,18 @@ public class RNStockModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void selectStock(String symbol, int appWidgetId, Callback cb) {
+    public void selectStock(ReadableMap stock, int appWidgetId, Callback cb) {
         //http://facebook.github.io/react-native/docs/native-modules-android.html#argument-types
 
-        Log.d("RNStockModule", "stockSelected: symbol " + symbol + " appWidgetId "+ appWidgetId);
+        JSONObject stockJSON = RNUtils.toJsonObject(stock);
+        Log.d("RNStockModule", "stockSelected: stock " + stockJSON);
 
         Intent intent = new Intent(mReactContext, StockWidget.class);
         intent.setAction(StockWidget.ACTION_APPWIDGET_SET_STOCK);
-        intent.putExtra("symbol", symbol);
+        intent.putExtra("stock", stockJSON.toString());
         intent.putExtra("appWidgetId", appWidgetId);
 
         mReactContext.sendBroadcast(intent);
         cb.invoke();
     }
-
-
 }

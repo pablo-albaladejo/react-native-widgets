@@ -51,8 +51,8 @@ public class StockWidget extends AppWidgetProvider {
                 views = new RemoteViews(context.getPackageName(), R.layout.stock_widget);
 
                 CharSequence symbolText = stock.getString("symbol");
-                CharSequence openText = "214.05";
-                CharSequence priceText = "213.26";
+                CharSequence openText = stock.getString("open");
+                CharSequence priceText = stock.getString("price");
 
                 views.setTextViewText(R.id.appwidget_symbol, symbolText);
                 views.setTextViewText(R.id.appwidget_open, openText);
@@ -104,7 +104,12 @@ public class StockWidget extends AppWidgetProvider {
                 break;
             case ACTION_APPWIDGET_SET_STOCK:
                 Log.d("WIDGET_PROVIDER", "ACTION_APPWIDGET_SET_STOCK");
-                setStock(context, extras.getString("symbol"), extras.getInt("appWidgetId"));
+                try{
+                    setStock(context, new JSONObject(extras.getString("stock")), extras.getInt("appWidgetId"));
+                }catch (JSONException e){
+                    Log.d("WIDGET_PROVIDER","JSONException " + e );
+                }
+
                 break;
 
             case ACTION_APPWIDGET_OPEN_STOCK:
@@ -134,14 +139,21 @@ public class StockWidget extends AppWidgetProvider {
     }
 
 
-    private void setStock(Context context, String symbol, int appWidgetId){
-        Log.d("WIDGET_PROVIDER", "setStock: symbol " + symbol + " appWidgetId " + appWidgetId);
+    private void setStock(Context context, JSONObject stock, int appWidgetId){
+        try {
+            String symbol = stock.getString("symbol");
 
-        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
-        editor.putString("widget_"+appWidgetId+"_symbol", symbol);
-        editor.apply();
+            Log.d("WIDGET_PROVIDER", "setStock: symbol " + symbol + " appWidgetId " + appWidgetId);
 
-        updateAppWidget(context, AppWidgetManager.getInstance(context), appWidgetId, null);
+            SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+            editor.putString("widget_"+appWidgetId+"_symbol", symbol);
+            editor.apply();
+
+            updateAppWidget(context, AppWidgetManager.getInstance(context), appWidgetId, stock);
+        }catch (JSONException e){
+            Log.d("WIDGET_PROVIDER", "JSONException " + e);
+        }
+
     }
 
     private void openStock(Context context, String symbol){
