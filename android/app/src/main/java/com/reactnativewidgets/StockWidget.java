@@ -22,6 +22,7 @@ public class StockWidget extends AppWidgetProvider {
     //https://developer.android.com/reference/android/appwidget/AppWidgetManager
     public static final String ACTION_APPWIDGET_CONFIGURE = "ACTION_WIDGET_CONFIGURE";
     public static final String ACTION_APPWIDGET_SET_STOCK = "ACTION_APPWIDGET_SET_STOCK";
+    public static final String ACTION_APPWIDGET_OPEN_STOCK = "ACTION_APPWIDGET_OPEN_STOCK";
     public static final String ACTION_APPWIDGET_UPDATE = "android.appwidget.action.APPWIDGET_UPDATE";
     public static final String ACTION_APPWIDGET_ENABLED = "android.appwidget.action.ACTION_APPWIDGET_ENABLED";
 
@@ -62,8 +63,16 @@ public class StockWidget extends AppWidgetProvider {
             }
 
         }else{
+
+            Intent intent = new Intent(context, StockWidget.class);
+            intent.setAction(ACTION_APPWIDGET_OPEN_STOCK);
+            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+            intent.putExtra("symbol", symbol);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(context, appWidgetId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
             views = new RemoteViews(context.getPackageName(), R.layout.stock_widget_no_data);
             views.setTextViewText(R.id.appwidget_symbol, symbol);
+            views.setOnClickPendingIntent(R.id.appwidget_symbol, pendingIntent);
         }
 
         appWidgetManager.updateAppWidget(appWidgetId, views);
@@ -94,12 +103,14 @@ public class StockWidget extends AppWidgetProvider {
 
                 break;
             case ACTION_APPWIDGET_SET_STOCK:
-                Log.d("WIDGET_PROVIDER", "ACTION_APPWIDGET_SET_STOCK: ");
-
+                Log.d("WIDGET_PROVIDER", "ACTION_APPWIDGET_SET_STOCK");
                 setStock(context, extras.getString("symbol"), extras.getInt("appWidgetId"));
-
                 break;
 
+            case ACTION_APPWIDGET_OPEN_STOCK:
+                Log.d("WIDGET_PROVIDER", "ACTION_APPWIDGET_SET_STOCK");
+                openStock(context, extras.getString("symbol"));
+                break;
             default:
                 Log.d("WIDGET_PROVIDER", "onReceive default " + incomingIntent.getAction());
                 break;
@@ -131,6 +142,23 @@ public class StockWidget extends AppWidgetProvider {
         editor.apply();
 
         updateAppWidget(context, AppWidgetManager.getInstance(context), appWidgetId, null);
+    }
+
+    private void openStock(Context context, String symbol){
+        Log.d("WIDGET_PROVIDER", "openStock: symbol " + symbol);
+
+        Bundle payload = new Bundle();
+        payload.putString("symbol", symbol);
+
+        Bundle widget = new Bundle();
+        widget.putBundle("navigation", payload);
+
+        Intent intent = new Intent(context, CustomReactActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra("module", "ReactNativeWidgets");
+        intent.putExtra("bundle", widget);
+
+        context.startActivity(intent);
     }
 }
 

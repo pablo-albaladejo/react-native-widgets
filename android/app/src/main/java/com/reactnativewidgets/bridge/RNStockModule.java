@@ -30,7 +30,7 @@ public class RNStockModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void selectStock(String symbol, String appWidgetId, Callback cb) {
+    public void selectStock(String symbol, int appWidgetId, Callback cb) {
         //http://facebook.github.io/react-native/docs/native-modules-android.html#argument-types
 
         Log.d("RNStockModule", "stockSelected: symbol " + symbol + " appWidgetId "+ appWidgetId);

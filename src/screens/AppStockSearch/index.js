@@ -4,11 +4,21 @@ import StockSearch from '../../components/StockSearch';
 class AppStockSearch extends Component {
 
     processItemSelected = (item) => {
-        this.props.navigation.navigate('Detail', { symbol: item.symbol });
+        this.onNavigate(item.symbol)
+    }
+
+    onNavigate = (symbol) => {
+        this.props.navigation.navigate('Detail', { symbol });
+    }
+
+    componentDidMount = () => {
+        const { screenProps } = this.props;
+        if (screenProps.navigation && screenProps.navigation.symbol) {
+            this.onNavigate(screenProps.navigation.symbol)
+        }
     }
 
     render() {
-        console.log(this.initialProps)
         return (
             <StockSearch
                 onItemSelected={this.processItemSelected}
