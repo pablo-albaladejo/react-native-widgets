@@ -5,14 +5,14 @@ class AppStockDetail extends Component {
 
     static navigationOptions = ({ navigation }) => {
         return {
-            title: navigation.state.params.stock.symbol,
+            title: navigation.state.params.symbol,
         };
     };
 
     render() {
         return (
             <StockDetail
-                stock={this.props.navigation.state.params.stock}
+                symbol={this.props.navigation.state.params.symbol}
             />
         )
     }
