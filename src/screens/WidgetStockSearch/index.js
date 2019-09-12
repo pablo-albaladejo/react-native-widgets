@@ -6,12 +6,10 @@ const { RNStockModule } = NativeModules
 class WidgetStockSearch extends Component {
 
     processItemSelected = (stock) => {
-        RNStockModule.selectStock({
-            symbol: stock.symbol,
-            appWidgetId: this.props.payload.appWidgetId
-        }, () => {
-            BackHandler.exitApp();
-        });
+        RNStockModule.selectStock(
+            stock.symbol,
+            this.props.payload.appWidgetId
+            , BackHandler.exitApp);
     }
 
     render() {
