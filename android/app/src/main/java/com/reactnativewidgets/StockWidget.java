@@ -58,6 +58,13 @@ public class StockWidget extends AppWidgetProvider {
                 views.setTextViewText(R.id.appwidget_open, openText);
                 views.setTextViewText(R.id.appwidget_price, priceText);
 
+                Intent intent = new Intent(context, StockWidget.class);
+                intent.setAction(ACTION_APPWIDGET_OPEN_STOCK);
+                intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+                intent.putExtra("symbol", symbol);
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(context, appWidgetId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                views.setOnClickPendingIntent(R.id.appwidget_symbol, pendingIntent);
+
             }catch (JSONException e){
                 Log.d("WIDGET_PROVIDER", "JSONException " + e);
             }
