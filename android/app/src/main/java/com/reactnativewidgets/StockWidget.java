@@ -11,8 +11,17 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.RemoteViews;
 
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
+
+import com.reactnativewidgets.bridge.RNWorker;
+
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Implementation of App Widget functionality.
@@ -24,7 +33,9 @@ public class StockWidget extends AppWidgetProvider {
     public static final String ACTION_APPWIDGET_SET_STOCK = "ACTION_APPWIDGET_SET_STOCK";
     public static final String ACTION_APPWIDGET_OPEN_STOCK = "ACTION_APPWIDGET_OPEN_STOCK";
     public static final String ACTION_APPWIDGET_UPDATE = "android.appwidget.action.APPWIDGET_UPDATE";
-    public static final String ACTION_APPWIDGET_ENABLED = "android.appwidget.action.ACTION_APPWIDGET_ENABLED";
+    public static final String ACTION_APPWIDGET_ENABLED = "android.appwidget.action.APPWIDGET_ENABLED";
+    public static final String ACTION_APPWIDGET_DISABLED = "android.appwidget.action.APPWIDGET_DISABLED";
+
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId, JSONObject stock) {
@@ -33,9 +44,9 @@ public class StockWidget extends AppWidgetProvider {
         RemoteViews views = null;
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        String symbol = prefs.getString("widget_"+appWidgetId+"_symbol", null);
+        String symbol = prefs.getString("widget_" + appWidgetId + "_symbol", null);
 
-        if(symbol == null){
+        if (symbol == null) {
             views = new RemoteViews(context.getPackageName(), R.layout.configure_widget);
 
             Intent intent = new Intent(context, StockWidget.class);
@@ -43,11 +54,11 @@ public class StockWidget extends AppWidgetProvider {
             intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
             PendingIntent pendingIntent = PendingIntent.getBroadcast(context, appWidgetId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-            views.setOnClickPendingIntent(R.id.appwidget_configure, pendingIntent );
+            views.setOnClickPendingIntent(R.id.appwidget_configure, pendingIntent);
 
-        }else if(stock != null){
+        } else if (stock != null) {
 
-            try{
+            try {
                 views = new RemoteViews(context.getPackageName(), R.layout.stock_widget);
 
                 CharSequence symbolText = stock.getString("symbol");
@@ -65,11 +76,11 @@ public class StockWidget extends AppWidgetProvider {
                 PendingIntent pendingIntent = PendingIntent.getBroadcast(context, appWidgetId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
                 views.setOnClickPendingIntent(R.id.appwidget_symbol, pendingIntent);
 
-            }catch (JSONException e){
+            } catch (JSONException e) {
                 Log.d("WIDGET_PROVIDER", "JSONException " + e);
             }
 
-        }else{
+        } else {
 
             Intent intent = new Intent(context, StockWidget.class);
             intent.setAction(ACTION_APPWIDGET_OPEN_STOCK);
@@ -85,23 +96,40 @@ public class StockWidget extends AppWidgetProvider {
         appWidgetManager.updateAppWidget(appWidgetId, views);
     }
 
+    private void refresh(Context context, int[] appWidgetIds){
+        for (int appWidgetId : appWidgetIds) {
+            Log.d("WIDGET_PROVIDER", "ACTION_APPWIDGET_UPDATE: " + appWidgetId);
+            updateAppWidget(context, AppWidgetManager.getInstance(context), appWidgetId, null);
+        }
+
+    }
+
     @Override
     public void onReceive(final Context context, final Intent incomingIntent) {
         super.onReceive(context, incomingIntent);
-        Log.d("WIDGET_PROVIDER", "onReceive");
 
         Bundle extras = incomingIntent.getExtras();
+        String action = incomingIntent.getAction();
 
-        switch (incomingIntent.getAction()){
-            case ACTION_APPWIDGET_UPDATE:
+        Log.d("WIDGET_PROVIDER", "onReceive action:" + action);
+
+        switch (action) {
+
             case ACTION_APPWIDGET_ENABLED:
+                PeriodicWorkRequest.Builder myWorkBuilder =  new PeriodicWorkRequest.Builder(RNWorker.class, 15, TimeUnit.MINUTES).addTag("WIDGETJOB01");
 
-                int[] appWidgetIds = extras.getIntArray(AppWidgetManager.EXTRA_APPWIDGET_IDS);
-                for (int appWidgetId : appWidgetIds) {
-                    Log.d("WIDGET_PROVIDER", "ACTION_APPWIDGET_UPDATE: " + appWidgetId);
-                    updateAppWidget(context, AppWidgetManager.getInstance(context), appWidgetId, null);
-                }
+                PeriodicWorkRequest myWork = myWorkBuilder.build();
+                WorkManager.getInstance(context)
+                        .enqueueUniquePeriodicWork("widgetJob", ExistingPeriodicWorkPolicy.REPLACE, myWork);
 
+                break;
+
+            case ACTION_APPWIDGET_DISABLED:
+                WorkManager.getInstance(context).cancelAllWorkByTag("WIDGETJOB01");
+                break;
+
+            case ACTION_APPWIDGET_UPDATE:
+                refresh(context,extras.getIntArray(AppWidgetManager.EXTRA_APPWIDGET_IDS));
                 break;
 
             case ACTION_APPWIDGET_CONFIGURE:
@@ -111,10 +139,10 @@ public class StockWidget extends AppWidgetProvider {
                 break;
             case ACTION_APPWIDGET_SET_STOCK:
                 Log.d("WIDGET_PROVIDER", "ACTION_APPWIDGET_SET_STOCK");
-                try{
+                try {
                     setStock(context, new JSONObject(extras.getString("stock")), extras.getInt("appWidgetId"));
-                }catch (JSONException e){
-                    Log.d("WIDGET_PROVIDER","JSONException " + e );
+                } catch (JSONException e) {
+                    Log.d("WIDGET_PROVIDER", "JSONException " + e);
                 }
 
                 break;
@@ -129,7 +157,7 @@ public class StockWidget extends AppWidgetProvider {
         }
     }
 
-    private void configureWidget(Context context, int appWidgetId){
+    private void configureWidget(Context context, int appWidgetId) {
         Bundle payload = new Bundle();
         payload.putInt("appWidgetId", appWidgetId);
 
@@ -146,24 +174,24 @@ public class StockWidget extends AppWidgetProvider {
     }
 
 
-    private void setStock(Context context, JSONObject stock, int appWidgetId){
+    private void setStock(Context context, JSONObject stock, int appWidgetId) {
         try {
             String symbol = stock.getString("symbol");
 
             Log.d("WIDGET_PROVIDER", "setStock: symbol " + symbol + " appWidgetId " + appWidgetId);
 
             SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
-            editor.putString("widget_"+appWidgetId+"_symbol", symbol);
+            editor.putString("widget_" + appWidgetId + "_symbol", symbol);
             editor.apply();
 
             updateAppWidget(context, AppWidgetManager.getInstance(context), appWidgetId, stock);
-        }catch (JSONException e){
+        } catch (JSONException e) {
             Log.d("WIDGET_PROVIDER", "JSONException " + e);
         }
 
     }
 
-    private void openStock(Context context, String symbol){
+    private void openStock(Context context, String symbol) {
         Log.d("WIDGET_PROVIDER", "openStock: symbol " + symbol);
 
         Bundle payload = new Bundle();
