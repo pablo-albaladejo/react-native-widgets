@@ -11,15 +11,12 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.RemoteViews;
 
-import androidx.core.app.JobIntentService;
 import androidx.work.Constraints;
 import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.NetworkType;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
-import com.reactnativewidgets.bridge.RNJobService;
-import com.reactnativewidgets.bridge.RNService;
 import com.reactnativewidgets.bridge.RNWorker;
 
 import org.json.JSONException;
