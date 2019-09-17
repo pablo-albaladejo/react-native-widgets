@@ -19,6 +19,7 @@ import com.facebook.react.jstasks.HeadlessJsTaskConfig;
 
 public class RNService extends HeadlessJsTaskService {
 
+    private static final int NOTIFICATION_ID = 0;
     private static final String CHANNEL_ID = "CHANNEL_ID";
     private static final String CHANNEL_NAME = "CHANNEL_NAME";
 
@@ -33,7 +34,11 @@ public class RNService extends HeadlessJsTaskService {
             manager.createNotificationChannel(channel);
 
             Notification notification = new Notification.Builder(getApplicationContext(), CHANNEL_ID).build();
-            startForeground(1, notification);
+            startForeground(NOTIFICATION_ID, notification);
+
+            //https://stackoverflow.com/a/30391451/3395884
+            NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            mNotificationManager.cancel(NOTIFICATION_ID);
         }
     }
 
