@@ -11,11 +11,15 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.RemoteViews;
 
+import androidx.core.app.JobIntentService;
+import androidx.work.Constraints;
 import androidx.work.ExistingPeriodicWorkPolicy;
-import androidx.work.OneTimeWorkRequest;
+import androidx.work.NetworkType;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
+import com.reactnativewidgets.bridge.RNJobService;
+import com.reactnativewidgets.bridge.RNService;
 import com.reactnativewidgets.bridge.RNWorker;
 
 import org.json.JSONException;
@@ -36,6 +40,9 @@ public class StockWidget extends AppWidgetProvider {
     public static final String ACTION_APPWIDGET_ENABLED = "android.appwidget.action.APPWIDGET_ENABLED";
     public static final String ACTION_APPWIDGET_DISABLED = "android.appwidget.action.APPWIDGET_DISABLED";
 
+    private static final String WIDGET_WORK_TAG = "WIDGET_WORK_TAG";
+    private static final String WIDGET_WORK_NAME = "WIDGET_WORK_NAME";
+    private static final int WIDGET_REFRESH_INTERVAL_MINUTES = 15;
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId, JSONObject stock) {
@@ -96,7 +103,7 @@ public class StockWidget extends AppWidgetProvider {
         appWidgetManager.updateAppWidget(appWidgetId, views);
     }
 
-    private void refresh(Context context, int[] appWidgetIds){
+    private void refresh(Context context, int[] appWidgetIds) {
         for (int appWidgetId : appWidgetIds) {
             Log.d("WIDGET_PROVIDER", "ACTION_APPWIDGET_UPDATE: " + appWidgetId);
             updateAppWidget(context, AppWidgetManager.getInstance(context), appWidgetId, null);
@@ -116,20 +123,15 @@ public class StockWidget extends AppWidgetProvider {
         switch (action) {
 
             case ACTION_APPWIDGET_ENABLED:
-                PeriodicWorkRequest.Builder myWorkBuilder =  new PeriodicWorkRequest.Builder(RNWorker.class, 15, TimeUnit.MINUTES).addTag("WIDGETJOB01");
-
-                PeriodicWorkRequest myWork = myWorkBuilder.build();
-                WorkManager.getInstance(context)
-                        .enqueueUniquePeriodicWork("widgetJob", ExistingPeriodicWorkPolicy.REPLACE, myWork);
-
+                setWidgetWork(context);
                 break;
 
             case ACTION_APPWIDGET_DISABLED:
-                WorkManager.getInstance(context).cancelAllWorkByTag("WIDGETJOB01");
+                unsetWidgetWork(context);
                 break;
 
             case ACTION_APPWIDGET_UPDATE:
-                refresh(context,extras.getIntArray(AppWidgetManager.EXTRA_APPWIDGET_IDS));
+                refresh(context, extras.getIntArray(AppWidgetManager.EXTRA_APPWIDGET_IDS));
                 break;
 
             case ACTION_APPWIDGET_CONFIGURE:
@@ -155,6 +157,23 @@ public class StockWidget extends AppWidgetProvider {
                 Log.d("WIDGET_PROVIDER", "onReceive default " + incomingIntent.getAction());
                 break;
         }
+    }
+
+    private void setWidgetWork(Context context){
+        Constraints constraints = new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build();
+
+        PeriodicWorkRequest workRequest = new PeriodicWorkRequest
+                .Builder(RNWorker.class, WIDGET_REFRESH_INTERVAL_MINUTES, TimeUnit.MINUTES)
+                .addTag(WIDGET_WORK_TAG)
+                .setConstraints(constraints)
+                .build();
+
+        WorkManager.getInstance(context)
+                .enqueueUniquePeriodicWork(WIDGET_WORK_NAME, ExistingPeriodicWorkPolicy.REPLACE, workRequest);
+    }
+
+    private void unsetWidgetWork(Context context) {
+        WorkManager.getInstance(context).cancelAllWorkByTag(WIDGET_WORK_TAG);
     }
 
     private void configureWidget(Context context, int appWidgetId) {

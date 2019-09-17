@@ -2,14 +2,16 @@ package com.reactnativewidgets.bridge;
 
 
 import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.JobIntentService;
 import androidx.work.ListenableWorker;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
-//https://developer.android.com/topic/libraries/architecture/workmanager/basics
 public class RNWorker extends Worker {
 
     public RNWorker(
@@ -21,6 +23,15 @@ public class RNWorker extends Worker {
     @Override
     public ListenableWorker.Result doWork() {
         Log.d("RNWorker", "doWork");
+
+
+        /*Intent service = new Intent(getApplicationContext(), RNService.class);
+        Bundle bundle = new Bundle();
+
+        bundle.putString("foo", "bar");
+        service.putExtras(bundle);
+
+        getApplicationContext().startService(service);*/
 
         return ListenableWorker.Result.success();
     }
